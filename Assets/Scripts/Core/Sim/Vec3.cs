@@ -18,6 +18,8 @@ namespace Volleyball.Core
         public static Vec3 operator -(Vec3 a, Vec3 b) => new Vec3(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
         public static Vec3 operator *(Vec3 a, float s) => new Vec3(a.X * s, a.Y * s, a.Z * s);
 
+        public float LengthXZ() => MathF.Sqrt(X * X + Z * Z);
+
         public static float DistanceXZ(Vec3 a, Vec3 b)
         {
             float dx = a.X - b.X, dz = a.Z - b.Z;

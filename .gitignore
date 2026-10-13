@@ -36,3 +36,6 @@ TestResults/
 # 作業系統
 .DS_Store
 Thumbs.db
+
+# Claude Code 代理的暫時工作目錄
+/.claude/worktrees/
