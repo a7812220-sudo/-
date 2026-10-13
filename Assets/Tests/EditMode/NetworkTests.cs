@@ -449,6 +449,51 @@ namespace Volleyball.Tests
     public class RobustnessTests
     {
         [Test]
+        public void SixHumansMashingButtonsOverALossyNetworkPlayForMinutesWithoutErrors()
+        {
+            var net = new LoopbackNetwork();
+            net.Loss = 0.1f;
+            net.Jitter = 0.04f;
+            var players = new List<TestClient>();
+            for (int i = 0; i < 6; i++) players.Add(net.Connect(i, "P" + i, i == 0 ? 0f : 0.03f + 0.01f * i));
+            net.Advance(0.5f);
+            players[0].Client.RequestStart();
+            net.Advance(0.5f);
+            foreach (TestClient p in players) Assert.IsTrue(p.Client.InMatch);
+
+            var rng = new Rng(31337);
+            int pointsSeen = 0;
+            for (int second = 0; second < 180; second++)
+            {
+                foreach (TestClient p in players)
+                {
+                    p.Right = rng.Range(-1f, 1f);
+                    p.Forward = rng.Range(-1f, 1f);
+                    if (rng.Value01() < 0.5f) p.PressHit();
+                    if (rng.Value01() < 0.3f) p.PressJump();
+                }
+
+                for (int f = 0; f < 6; f++)
+                {
+                    net.Advance(1f / 6f);
+                    foreach (TestClient p in players)
+                    {
+                        if (!p.Client.Render.Valid) continue;
+                        Vec3 b = p.Client.Render.BallPos;
+                        Assert.IsFalse(float.IsNaN(b.X + b.Y + b.Z), "畫面上的球座標不該是 NaN");
+                        Assert.Less(Math.Abs(b.X), 80f);
+                    }
+                }
+
+                if (net.Server.InMatch) pointsSeen = Math.Max(pointsSeen, net.Server.Match.Score[0] + net.Server.Match.Score[1]);
+            }
+
+            Assert.Greater(pointsSeen, 0, "三分鐘內應該已經有人得分");
+            foreach (TestClient p in players)
+                Assert.IsTrue(p.Client.Room != null && p.Client.MySlot >= 0, "每個人到最後都還在房間裡");
+        }
+
+        [Test]
         public void GarbageAndTruncatedPacketsNeverThrow()
         {
             var net = new LoopbackNetwork();
