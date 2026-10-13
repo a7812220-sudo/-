@@ -13,7 +13,7 @@ namespace Volleyball.Game
 
         readonly GameApp app;
 
-        GUIStyle label, small, title, huge, button, field, toggle, panel, center, centerSmall;
+        GUIStyle label, labelRight, small, smallRight, title, huge, hugeCenter, button, field, toggle, panel, center, centerSmall;
         bool stylesReady;
         float scale = 1f;
 
@@ -190,7 +190,7 @@ namespace Volleyball.Game
             GUILayout.BeginHorizontal();
             for (int team = 0; team < 2; team++)
             {
-                GUILayout.BeginVertical(GUILayout.Width(360));
+                GUILayout.BeginVertical(GUILayout.Width(340));
                 string teamColor = team == 0 ? "#6FA8FF" : "#FF7A7A";
                 GUILayout.Label("<color=" + teamColor + "><b>" + Visuals.TeamName(team) + "</b></color>", title);
                 bool hasEmpty = false;
@@ -258,7 +258,7 @@ namespace Volleyball.Game
             Label(new Rect(16, 686, 900, 28),
                 "<color=#CBD5E1>WASD 移動　空白鍵 跳　J／滑鼠左鍵 擊球（按住方向鍵決定球路）　Esc 選單</color>", small);
             if (!string.IsNullOrEmpty(app.Session.JoinCode))
-                Label(new Rect(w - 260, 686, 244, 28), "<color=#CBD5E1>房間代碼 " + app.Session.JoinCode + "</color>", new GUIStyle(small) { alignment = TextAnchor.MiddleRight });
+                Label(new Rect(w - 260, 686, 244, 28), "<color=#CBD5E1>房間代碼 " + app.Session.JoinCode + "</color>", smallRight);
 
             if (PauseOpen) DrawPause(w);
         }
@@ -303,8 +303,8 @@ namespace Volleyball.Game
             string serve0 = rs.ServingTeam == 0 ? " ●" : "";
             string serve1 = rs.ServingTeam == 1 ? "● " : "";
             Label(new Rect(r.x + 14, r.y, 140, r.height), "<color=#6FA8FF>藍隊</color>" + serve0, label);
-            Label(new Rect(r.xMax - 154, r.y, 140, r.height), serve1 + "<color=#FF7A7A>紅隊</color>", new GUIStyle(label) { alignment = TextAnchor.MiddleRight });
-            Label(new Rect(r.x + 150, r.y, 140, r.height), rs.Score0 + "  :  " + rs.Score1, new GUIStyle(huge) { alignment = TextAnchor.MiddleCenter });
+            Label(new Rect(r.xMax - 154, r.y, 140, r.height), serve1 + "<color=#FF7A7A>紅隊</color>", labelRight);
+            Label(new Rect(r.x + 150, r.y, 140, r.height), rs.Score0 + "  :  " + rs.Score1, hugeCenter);
 
             if (rs.Phase == Phase.Rally && rs.LastTouchTeam >= 0 && !rs.ServeInFlight)
             {
@@ -427,9 +427,12 @@ namespace Volleyball.Game
             }, 24);
 
             label = Make(GUI.skin.label, font, 22, TextAnchor.MiddleLeft);
+            labelRight = Make(GUI.skin.label, font, 22, TextAnchor.MiddleRight);
             small = Make(GUI.skin.label, font, 17, TextAnchor.MiddleLeft);
+            smallRight = Make(GUI.skin.label, font, 17, TextAnchor.MiddleRight);
             title = Make(GUI.skin.label, font, 30, TextAnchor.MiddleLeft);
             huge = Make(GUI.skin.label, font, 46, TextAnchor.MiddleLeft);
+            hugeCenter = Make(GUI.skin.label, font, 46, TextAnchor.MiddleCenter);
             center = Make(GUI.skin.label, font, 30, TextAnchor.MiddleCenter);
             centerSmall = Make(GUI.skin.label, font, 18, TextAnchor.MiddleCenter);
             button = Make(GUI.skin.button, font, 24, TextAnchor.MiddleCenter);
