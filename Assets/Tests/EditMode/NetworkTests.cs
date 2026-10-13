@@ -430,7 +430,8 @@ namespace Volleyball.Tests
 
             var m = net.Server.Match;
             m.Score[0] = 14;
-            TestUtil.ForceRally(m, Court.OwnSide(1, 3f, 0f, 1.5f), default, 0, 1, 0);
+            // 球落在任何人都構不到的遠處界外，最後觸球的是隊伍 1 → 隊伍 0 得第 15 分
+            TestUtil.ForceRally(m, new Vec3(11f, 1.5f, 0f), default, 1, 1, 3);
             net.Advance(1.5f);
             Assert.AreEqual(Phase.GameOver, m.Phase);
             Assert.AreEqual(Phase.GameOver, friend.Client.Render.Phase);
