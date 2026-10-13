@@ -117,6 +117,8 @@ dotnet test tests/Volleyball.Core.Tests       # 需要 .NET 8 SDK
 
 ## 疑難排解
 
+- **Unity Hub 顯示「Built-In Render Pipeline 已淘汰」黃色警告**：Unity 6.5 以後的通知，支援到 6.7，不影響遊戲，按「關閉」即可。
+
 - **按了 Play 沒有任何反應／畫面上方出現紅色提示**：專案只啟用了新版 Input System。到 *Edit → Project Settings → Player → Other Settings → Active Input Handling*，改成 **Both**（或 Input Manager (Old)），重新啟動編輯器。
 - **中文變成方塊**：介面用系統字型（Windows 正黑體、macOS 蘋方、Linux Noto CJK）。找不到中文字型時請安裝一套。
 - **只有 Windows／macOS／Linux 單機版**：WebGL 與手機不支援（Relay 傳輸方式與鍵盤操作都沒有針對它們處理）。

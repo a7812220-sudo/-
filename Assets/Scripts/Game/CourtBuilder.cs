@@ -67,8 +67,10 @@ namespace Volleyball.Game
         /// <summary>建立（或沿用）攝影機與一盞方向光，並關掉場景裡原本的燈。</summary>
         public static Camera SetupCameraAndLight()
         {
-            foreach (Light old in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
-                old.gameObject.SetActive(false);
+            // 預設場景自帶一盞 "Directional Light"，先關掉免得光線疊加。
+            // 不用 FindObjectsByType：它帶排序參數的版本在 Unity 6000.4/6000.5 以後被移除，不同版本寫法不一樣。
+            GameObject defaultLight = GameObject.Find("Directional Light");
+            if (defaultLight != null) defaultLight.SetActive(false);
 
             GameObject sunGo = new GameObject("Sun");
             Light sun = sunGo.AddComponent<Light>();
