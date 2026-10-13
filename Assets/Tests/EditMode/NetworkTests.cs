@@ -280,6 +280,35 @@ namespace Volleyball.Tests
         }
 
         [Test]
+        public void TheLocalPlayerNeverVisiblyJumpsWhileRunningAroundOnABadNetwork()
+        {
+            var net = StartedMatch(out var host, out var friend, 0.06f);
+            net.Loss = 0.1f;
+            net.Jitter = 0.04f;
+            net.Advance(0.5f);
+            int slot = friend.Client.MySlot;
+
+            Vec3 prev = friend.Client.Render.Players[slot].Pos;
+            float worst = 0f;
+            for (int i = 0; i < 360; i++)
+            {
+                if (i % 40 == 0)
+                {
+                    friend.Forward = (i / 40) % 2 == 0 ? 1f : -1f; // 來回跑，不會一直頂到邊界
+                    friend.Right = (i / 80) % 2 == 0 ? 0.5f : -0.5f;
+                    if (i % 120 == 0) friend.PressJump();
+                }
+
+                net.Advance(1f / 60f);
+                Vec3 cur = friend.Client.Render.Players[slot].Pos;
+                worst = Math.Max(worst, Vec3.DistanceXZ(prev, cur));
+                prev = cur;
+            }
+
+            Assert.Less(worst, 0.2f, "單一畫面內本機角色的最大位移（公尺），全速一格只有 " + GameConfig.MoveSpeed / 60f);
+        }
+
+        [Test]
         public void OtherPlayersAreRenderedSmoothlyWithoutJumps()
         {
             var net = StartedMatch(out var host, out var friend, 0.05f);
