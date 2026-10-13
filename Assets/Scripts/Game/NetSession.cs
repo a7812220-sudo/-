@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Relay;
@@ -130,7 +129,10 @@ namespace Volleyball.Game
 
                 await WaitUntilIdle();
                 if (cancelled) return;
-                transport.SetRelayServerData(new RelayServerData(allocation, ConnectionTypeFor(allocation.ServerEndpoints)));
+                RelayServerEndpoint endpoint = PickEndpoint(allocation.ServerEndpoints);
+                // 房主不需要另外給 hostConnectionData（傳 null 會沿用自己的 connectionData）
+                transport.SetRelayServerData(endpoint.Host, (ushort)endpoint.Port, allocation.AllocationIdBytes,
+                    allocation.Key, allocation.ConnectionData, null, endpoint.Secure);
                 StartNgoHost();
             }
             catch (Exception e)
@@ -151,7 +153,9 @@ namespace Volleyball.Game
 
                 await WaitUntilIdle();
                 if (cancelled) return;
-                transport.SetRelayServerData(new RelayServerData(allocation, ConnectionTypeFor(allocation.ServerEndpoints)));
+                RelayServerEndpoint endpoint = PickEndpoint(allocation.ServerEndpoints);
+                transport.SetRelayServerData(endpoint.Host, (ushort)endpoint.Port, allocation.AllocationIdBytes,
+                    allocation.Key, allocation.ConnectionData, allocation.HostConnectionData, endpoint.Secure);
                 StartNgoClient();
             }
             catch (Exception e)
@@ -168,13 +172,22 @@ namespace Volleyball.Game
             if (!AuthenticationService.Instance.IsSignedIn) await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
 
-        /// <summary>優先用加密的 DTLS；如果這個 allocation 沒提供，退回 UDP（否則 RelayServerData 會默默變成空端點）。</summary>
-        static string ConnectionTypeFor(System.Collections.Generic.List<RelayServerEndpoint> endpoints)
+        /// <summary>
+        /// 從 allocation 的端點清單挑出要連的那個：優先用加密的 DTLS，沒有就用 UDP。
+        /// 刻意不用 new RelayServerData(allocation, "dtls")：那個建構子只有在 Transport 套件偵測到 Relay SDK 時才存在，
+        /// 在部分 Unity 版本會消失（CS1729）。直接把端點資料交給 UnityTransport 的原始參數版本就沒有這個問題。
+        /// </summary>
+        static RelayServerEndpoint PickEndpoint(System.Collections.Generic.List<RelayServerEndpoint> endpoints)
         {
+            RelayServerEndpoint udp = null;
             foreach (RelayServerEndpoint e in endpoints)
-                if (e.ConnectionType == RelayServerEndpoint.ConnectionTypeDtls)
-                    return RelayServerEndpoint.ConnectionTypeDtls;
-            return RelayServerEndpoint.ConnectionTypeUdp;
+            {
+                if (e.ConnectionType == RelayServerEndpoint.ConnectionTypeDtls) return e;
+                if (e.ConnectionType == RelayServerEndpoint.ConnectionTypeUdp) udp = e;
+            }
+
+            if (udp == null) throw new InvalidOperationException("Relay 沒有提供可用的連線端點（需要 DTLS 或 UDP）。");
+            return udp;
         }
 
         // ---------- 區網直連 ----------
