@@ -130,7 +130,7 @@ namespace Volleyball.Game
 
                 await WaitUntilIdle();
                 if (cancelled) return;
-                transport.SetRelayServerData(new RelayServerData(allocation, "dtls"));
+                transport.SetRelayServerData(new RelayServerData(allocation, ConnectionTypeFor(allocation.ServerEndpoints)));
                 StartNgoHost();
             }
             catch (Exception e)
@@ -151,7 +151,7 @@ namespace Volleyball.Game
 
                 await WaitUntilIdle();
                 if (cancelled) return;
-                transport.SetRelayServerData(new RelayServerData(allocation, "dtls"));
+                transport.SetRelayServerData(new RelayServerData(allocation, ConnectionTypeFor(allocation.ServerEndpoints)));
                 StartNgoClient();
             }
             catch (Exception e)
@@ -164,7 +164,17 @@ namespace Volleyball.Game
         {
             if (UnityServices.State == ServicesInitializationState.Uninitialized) await UnityServices.InitializeAsync();
             while (UnityServices.State == ServicesInitializationState.Initializing) await Task.Yield();
+            while (AuthenticationService.Instance.State == AuthenticationState.SigningIn) await Task.Yield();
             if (!AuthenticationService.Instance.IsSignedIn) await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        }
+
+        /// <summary>優先用加密的 DTLS；如果這個 allocation 沒提供，退回 UDP（否則 RelayServerData 會默默變成空端點）。</summary>
+        static string ConnectionTypeFor(System.Collections.Generic.List<RelayServerEndpoint> endpoints)
+        {
+            foreach (RelayServerEndpoint e in endpoints)
+                if (e.ConnectionType == RelayServerEndpoint.ConnectionTypeDtls)
+                    return RelayServerEndpoint.ConnectionTypeDtls;
+            return RelayServerEndpoint.ConnectionTypeUdp;
         }
 
         // ---------- 區網直連 ----------
@@ -205,7 +215,8 @@ namespace Volleyball.Game
         static async Task WaitUntilIdle()
         {
             EnsureNetworkManager();
-            while (nm.ShutdownInProgress) await Task.Yield();
+            // Shutdown() 是延後執行的；房主還要先通知所有客戶端斷線（最多約 5 秒）。沒收乾淨就重啟會被拒絕。
+            while (nm.ShutdownInProgress || nm.IsListening) await Task.Yield();
         }
 
         static void EnsureNetworkManager()
@@ -294,8 +305,10 @@ namespace Volleyball.Game
                 return;
             }
 
+            // NGO 斷線後 DisconnectReason 一定有值：沒有伺服器給的理由時是 "[Disconnect Event][Client-n]…" 這種內部字串
             string reason = nm != null ? nm.DisconnectReason : null;
-            if (string.IsNullOrEmpty(reason)) reason = helloSent ? "與主機的連線中斷。" : "無法連線到主機，請確認代碼／位址是否正確。";
+            if (string.IsNullOrEmpty(reason) || reason.StartsWith("[Disconnect Event]"))
+                reason = helloSent ? "與主機的連線中斷。" : "無法連線到主機。請確認代碼／位址正確，而且雙方使用相同版本的遊戲。";
             Fail(reason);
         }
 

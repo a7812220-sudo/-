@@ -134,6 +134,7 @@ namespace Volleyball.Game
                 if (GUILayout.Button("連線", button, GUILayout.Width(110), GUILayout.Height(40)))
                     app.StartDirectJoin(PlayerName(), ipField, ParsePort());
                 GUILayout.EndHorizontal();
+                GUILayout.Label("請輸入 IP 位址（例如 192.168.1.20），Unity 6000.0 不支援網域名稱", small);
             }
 
             if (!string.IsNullOrEmpty(error))
