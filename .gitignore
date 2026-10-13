@@ -1,0 +1,38 @@
+# Unity 產生的資料夾
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# IDE（只忽略專案根目錄；tests/ 底下的 csproj 要保留）
+/.vs/
+/.idea/
+/.vscode/
+/*.csproj
+/*.sln
+/*.slnx
+/*.suo
+/*.user
+/*.userprefs
+/*.pidb
+
+# 建置輸出
+*.apk
+*.aab
+*.unitypackage
+/*.pdb
+*.mdb
+
+# dotnet 測試專案輸出
+/tests/**/bin/
+/tests/**/obj/
+TestResults/
+
+# 作業系統
+.DS_Store
+Thumbs.db
