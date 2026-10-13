@@ -156,9 +156,11 @@ namespace Volleyball.Core
             LastTouchTeam = team;
             LastToucherSlot = slot;
             TouchCount = touches;
-            p.HitBuffer = 0f;
             p.HitCooldown = GameConfig.HitCooldown;
             touchLockout = GameConfig.BallLockout;
+            // 同隊其他人這時按的鍵也作廢：否則鎖定時間一過，沒被選中的人會「補打」第二觸（甚至第四觸犯規）
+            for (int i = team * GameConfig.PlayersPerTeam; i < (team + 1) * GameConfig.PlayersPerTeam; i++)
+                Players[i].HitBuffer = 0f;
             AddEvent(EventKind.Hit, (byte)team, (sbyte)slot, (byte)kind, (byte)touches, Ball.Pos);
         }
 

@@ -457,6 +457,42 @@ namespace Volleyball.Tests
         }
 
         [Test]
+        public void SoloPracticeAgainstBotsPlaysAFullMatchAndReturnsToTheLobby()
+        {
+            var net = new LoopbackNetwork();
+            var host = net.Connect(0, "我", 0f);
+            net.Advance(0.3f);
+            host.Client.RequestStart();
+            net.Advance(0.3f);
+            Assert.IsTrue(host.Client.InMatch);
+
+            // 房主站著不動，另外 5 位電腦打到有一方 15 分；全程不能卡住
+            bool sawGameOver = false;
+            bool backInLobby = false;
+            float elapsed = 0f;
+            while (elapsed < 25f * 60f && !backInLobby)
+            {
+                net.Advance(1f, 1f / 30f);
+                elapsed += 1f;
+                if (net.Server.InMatch)
+                {
+                    var m = net.Server.Match;
+                    sawGameOver |= m.Phase == Phase.GameOver;
+                    Assert.Less(m.Phase == Phase.ServeWait ? m.PhaseTime : 0f, GameConfig.ServeTimeout + 0.5f);
+                }
+                else
+                {
+                    backInLobby = true;
+                }
+            }
+
+            Assert.IsTrue(sawGameOver, "比賽應該在 25 分鐘內打完");
+            Assert.IsTrue(backInLobby);
+            Assert.IsFalse(host.Client.InMatch);
+            Assert.AreEqual(SlotKind.Human, host.Client.Room.Slots[host.Client.MySlot].Kind);
+        }
+
+        [Test]
         public void EventsReachTheViewAtTheMomentTheirTickIsRendered()
         {
             var net = StartedMatch(out var host, out var friend, 0.05f);

@@ -167,6 +167,33 @@ namespace Volleyball.Tests
         }
 
         [Test]
+        public void ATeammateWhoLostTheRaceDoesNotHitTheBallRightAfterwards()
+        {
+            // 兩位隊友同時按擊球：只有離球最近的人擊球，另一位按鍵不能留著，等鎖定時間過了再「補打」
+            var m = TestUtil.NewServeWait();
+            m.Players[1].Pos = new Vec3(-3f, 0f, 0.1f);
+            m.Players[2].Pos = new Vec3(-3f, 0f, 0.5f);
+            TestUtil.ForceRally(m, new Vec3(-3f, 1.2f, 0f), default, 1, 1, 3);
+
+            var both = TestUtil.Idle();
+            both[1].Hit = true;
+            both[2].Hit = true;
+            m.Step(both, TestUtil.Dt);
+            Assert.AreEqual(1, m.LastToucherSlot, "離球較近的 1 號擊球");
+            Assert.AreEqual(1, m.TouchCount);
+
+            // 把 2 號留在球的下方，讓他隨時構得到球；鎖定與緩衝時間都過了也不能補打
+            for (int i = 0; i < TestUtil.Ticks(0.6f); i++)
+            {
+                m.Players[2].Pos = new Vec3(m.Ball.Pos.X, 0f, m.Ball.Pos.Z);
+                m.Step(TestUtil.Idle(), TestUtil.Dt);
+                Assert.IsFalse(TestUtil.HasEvent(m, EventKind.Hit), "沒按鍵的人不該擊球（第 " + i + " tick）");
+            }
+
+            Assert.AreEqual(1, m.TouchCount);
+        }
+
+        [Test]
         public void CannotReachOverTheNet()
         {
             var m = TestUtil.NewServeWait();
