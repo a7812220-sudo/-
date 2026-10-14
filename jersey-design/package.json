@@ -1,0 +1,16 @@
+{
+  "name": "volleyball-jersey-design",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "d3-contour": "4.0.2",
+    "d3-shape": "3.2.0",
+    "simplex-noise": "4.0.3"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
