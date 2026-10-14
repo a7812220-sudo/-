@@ -12,7 +12,7 @@ export async function renderPng(svgs, outPath, { width = 1000, height = 1200, sc
   const imgs = svgs.map(s => `<img width="${width}" height="${height}" src="data:image/svg+xml;base64,${Buffer.from(s).toString('base64')}">`).join('');
   await page.setContent(`<html><body style="margin:0;background:#000;display:flex">${imgs}</body></html>`);
   await page.waitForFunction(() => [...document.images].every(i => i.complete && i.naturalWidth > 0));
-  writeFileSync(outPath, await page.screenshot({ clip: { x: 0, y: 0, width: total, height } }));
+  writeFileSync(outPath, await page.screenshot({ clip: { x: 0, y: 0, width: total, height }, timeout: 180000 }));
   await page.close();
 }
 
