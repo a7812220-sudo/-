@@ -39,13 +39,13 @@ function cuffBand(c, inset) {
   return { nx, ny, p };
 }
 
-function cuff(c, side) {
+function cuff(c, piping) {
   const { p } = cuffBand(c);
   // 白色細條：在袖口羅紋的上緣。
   return `
     <path d="M${p(c.a, 0)} L${p(c.b, 0)} L${p(c.b, 30)} L${p(c.a, 30)} Z" fill="#0a0a0b"/>
     <path d="M${p(c.a, 0)} L${p(c.b, 0)} L${p(c.b, 30)} L${p(c.a, 30)} Z" fill="url(#rib)" opacity="0.5"/>
-    <path d="M${p(c.a, 22)} L${p(c.b, 22)}" stroke="#f4f4f2" stroke-width="5" fill="none"/>
+    <path d="M${p(c.a, 22)} L${p(c.b, 22)}" stroke="${piping}" stroke-width="5" fill="none"/>
     <path d="M${p(c.a, 30)} L${p(c.b, 30)}" stroke="#000" stroke-opacity="0.6" stroke-width="1.2" fill="none"/>`;
 }
 
@@ -105,27 +105,27 @@ function seams() {
     <path d="${d}" transform="translate(1.6 0)" fill="none" stroke="#fff" stroke-opacity="0.06" stroke-width="1"/>`).join('');
 }
 
-function collar(side) {
+function collar(side, piping) {
   if (side === 'front') {
     return `
       <path d="${V_OPEN}" fill="#050505"/>
       <path d="${BACK_BAND_INNER} L602 96 C590 88 560 80 500 80 C440 80 410 88 398 96 Z" fill="#0b0b0c"/>
-      <path d="M398 96 C432 108 466 114 500 114 C534 114 568 108 602 96" fill="none" stroke="#f4f4f2" stroke-width="4" stroke-opacity="0.75"/>
+      <path d="M398 96 C432 108 466 114 500 114 C534 114 568 108 602 96" fill="none" stroke="${piping}" stroke-width="4" stroke-opacity="0.75"/>
       <path d="${V_BAND_OUTER} L602 96 C584 150 544 208 500 262 C456 208 416 150 398 96 Z" fill="#0a0a0b"/>
       <path d="${V_BAND_OUTER} L602 96 C584 150 544 208 500 262 C456 208 416 150 398 96 Z" fill="url(#rib)" opacity="0.5"/>
-      <path d="${V_BAND_INNER}" fill="none" stroke="#f4f4f2" stroke-width="6"/>
+      <path d="${V_BAND_INNER}" fill="none" stroke="${piping}" stroke-width="6"/>
       <path d="${V_BAND_OUTER}" fill="none" stroke="#000" stroke-opacity="0.8" stroke-width="1.5"/>`;
   }
   return `
     <path d="${BACK_BAND_OUTER} L602 96 C568 108 534 114 500 114 C466 114 432 108 398 96 Z" fill="#0a0a0b"/>
     <path d="${BACK_BAND_OUTER} L602 96 C568 108 534 114 500 114 C466 114 432 108 398 96 Z" fill="url(#rib)" opacity="0.5"/>
-    <path d="${BACK_BAND_INNER}" fill="none" stroke="#f4f4f2" stroke-width="6"/>
+    <path d="${BACK_BAND_INNER}" fill="none" stroke="${piping}" stroke-width="6"/>
     <path d="${BACK_BAND_OUTER}" fill="none" stroke="#000" stroke-opacity="0.8" stroke-width="1.5"/>`;
 }
 
 // 擬真預覽：攝影棚背景＋衣身＋圖案＋光影＋領口袖口。
-// art：已經在 1000x1200 座標中畫好的 SVG 片段；defs：圖案自己需要的 <defs> 內容。
-export function mockup({ side, art = '', defs = '', base = '#0c0c0d' }) {
+// art：已經在 1000x1200 座標中畫好的 SVG 片段；defs：圖案自己需要的 <defs> 內容；piping：領口與袖口滾邊顏色。
+export function mockup({ side, art = '', defs = '', base = '#0c0c0d', piping = '#f4f4f2' }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
   <defs>${DEFS}${defs}</defs>
   <rect width="${W}" height="${H}" fill="url(#studio)"/>
@@ -135,17 +135,16 @@ export function mockup({ side, art = '', defs = '', base = '#0c0c0d' }) {
   ${SHADING}
   <path d="${BODY}" fill="none" stroke="#fff" stroke-opacity="0.09" stroke-width="2"/>
   ${seams()}
-  ${cuff(CUFF_L)}${cuff(CUFF_R)}
-  ${collar(side)}
+  ${cuff(CUFF_L, piping)}${cuff(CUFF_R, piping)}
+  ${collar(side, piping)}
 </svg>`;
 }
 
-// 印刷用：只有衣身形狀內的圖案，沒有光影與背景（交給工廠套到自己的版片上）。
+// 印刷用：不裁切、不加光影的滿版圖案（含出血），由工廠套到自己的版片上；擺放位置以預覽圖為準。
 export function printFile({ art = '', defs = '', base = '#0c0c0d' }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
-  <defs><clipPath id="body"><path d="${BODY}"/></clipPath>${defs}</defs>
-  <path d="${BODY}" fill="${base}"/>
-  <g clip-path="url(#body)">${art}</g>
-  <path d="${BODY}" fill="none" stroke="#ff2d55" stroke-width="1" stroke-dasharray="6 6"/>
+  <defs>${defs}</defs>
+  <rect width="${W}" height="${H}" fill="${base}"/>
+  ${art}
 </svg>`;
 }

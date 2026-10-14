@@ -1,6 +1,7 @@
 // 用法：node build.mjs [concepts/xxx.mjs ...] [--out 目錄] [--print-png]
 // 每個設計模組要匯出 front() 與 back()，各自回傳 { art, defs?, base? }（1000x1200 座標的 SVG 片段）。
-// 輸出：<out>/<名稱>-mockup.png（正背並排）、-front.png、-back.png，以及 <out>/print/<名稱>-front.svg、-back.svg。
+// 輸出：<out>/<名稱>-mockup.png（正背並排）、-front.png、-back.png，以及 <out>/print/<名稱>-front.svg、-back.svg（滿版印刷圖）。
+// 加上 --print-png 另外輸出 5000x6000 的印刷用 PNG（約 170 dpi）。
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
